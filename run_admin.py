@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*-
+import uvicorn
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+if __name__ == "__main__":
+    from bot.admin_panel import app
+    
+    port = int(os.getenv("ADMIN_PORT", 8080))
+    host = os.getenv("ADMIN_HOST", "0.0.0.0")
+    
+    print(f"Starting admin panel on http://{host}:{port}")
+    
+    uvicorn.run(
+        app, 
+        host=host, 
+        port=port,
+        log_level="info"
+    )
