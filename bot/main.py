@@ -151,3 +151,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from bot.expiration_task import check_expired_users
+
+scheduler = AsyncIOScheduler()
+scheduler.add_job(check_expired_users, "interval", hours=24)
+scheduler.start()
+
