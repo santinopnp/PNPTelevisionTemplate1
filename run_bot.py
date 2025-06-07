@@ -4,9 +4,12 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import logging
 import sys
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram import Update
+from telegram.constants import ChatAction
 from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from telegram.ext import ContextTypes
 
 load_dotenv()
 
@@ -17,6 +20,10 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+async def notify_kicked_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message:
+        await update.message.reply_text("Has sido expulsado del canal por expiración de tu membresía. Puedes renovarla en cualquier momento para volver a ingresar. ✨")
 
 def main():
     try:
@@ -39,6 +46,7 @@ def main():
         app.add_handler(CommandHandler("stats", stats_command))
         app.add_handler(CommandHandler("admin_help", admin_help_command))
         app.add_handler(CallbackQueryHandler(handle_callback))
+        app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, notify_kicked_users))
 
         scheduler = AsyncIOScheduler()
         scheduler.add_job(check_expired_users, "interval", hours=24)
