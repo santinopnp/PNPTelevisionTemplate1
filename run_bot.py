@@ -6,6 +6,7 @@ import logging
 import sys
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from dotenv import load_dotenv
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 load_dotenv()
 
