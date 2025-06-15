@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 import logging
 from bot.texts import TEXTS
 from bot.config import PLANS, ADMIN_IDS
+from bot.interaction_logger import interaction_logger
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +16,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle all callback queries"""
     query = update.callback_query
     await query.answer()
-    
+
     data = query.data
     user_id = query.from_user.id
+    interaction_logger.log(user_id, "callback", {"data": data})
     
     try:
         if data.startswith("lang_"):
@@ -44,6 +46,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await show_help(query, user_id)
         elif data == "admin_stats":
             await show_admin_stats(query, user_id)
+        elif data == "admin_broadcast":
+            await show_admin_broadcast(query, user_id)
         elif data.startswith("plan_"):
             await handle_plan_selection(query, user_id, data)
         else:
@@ -73,7 +77,7 @@ async def show_age_verification(query, user_id):
     await query.edit_message_text(
         text=TEXTS[lang]["age_warning"],
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def handle_age_confirmation(query, user_id):
@@ -110,7 +114,7 @@ async def show_main_menu(query, user_id):
     await query.edit_message_text(
         text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_plans(query, user_id):
@@ -132,7 +136,7 @@ async def show_plans(query, user_id):
     await query.edit_message_text(
         text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def handle_plan_selection(query, user_id, data):
@@ -149,14 +153,13 @@ async def handle_plan_selection(query, user_id, data):
     from bot.config import PLAN_DESCRIPTIONS
     description = PLAN_DESCRIPTIONS.get(lang, PLAN_DESCRIPTIONS["en"])
     
-    # Generate BOLD payment link directly
-    from bot.config import BOLD_IDENTITY_KEY
-    link_id = plan_info["link_id"]
-    payment_url = (
-        f"https://checkout.bold.co/payment/{link_id}"
-        f"?identity_key={BOLD_IDENTITY_KEY}"
-        f"&metadata[user_id]={user_id}"
+    # Generate BOLD payment link and store transaction
+    from bot.payment_links import payment_generator
+    payment_url, tx_id = payment_generator.generate_payment_link(
+        user_id=user_id,
+        plan_name=plan_info["name"],
     )
+    interaction_logger.log(user_id, "payment_link", {"plan": plan_id, "tx": tx_id})
     
     text = f"""**{plan_info['name']}**
 
@@ -179,7 +182,7 @@ Click below to complete payment:"""
     await query.edit_message_text(
         text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_policies(query, user_id):
@@ -209,7 +212,7 @@ async def show_terms(query, user_id):
     await query.edit_message_text(
         text=TEXTS[lang]["terms_content"],
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_privacy(query, user_id):
@@ -223,7 +226,7 @@ async def show_privacy(query, user_id):
     await query.edit_message_text(
         text=TEXTS[lang]["privacy_content"],
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_refund(query, user_id):
@@ -237,7 +240,7 @@ async def show_refund(query, user_id):
     await query.edit_message_text(
         text=TEXTS[lang]["refund_content"],
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_contact(query, user_id):
@@ -251,7 +254,7 @@ async def show_contact(query, user_id):
     await query.edit_message_text(
         text=TEXTS[lang]["contact_info"],
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_help(query, user_id):
@@ -281,7 +284,7 @@ If you need help, contact our support team at @PNPTVSupport"""
     await query.edit_message_text(
         text=help_text,
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 async def show_admin_stats(query, user_id):
@@ -312,5 +315,25 @@ Last updated: Just now"""
     await query.edit_message_text(
         text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
+    )
+
+async def show_admin_broadcast(query, user_id):
+    """Show instructions for broadcast"""
+    if user_id not in ADMIN_IDS:
+        await query.edit_message_text("⛔ Unauthorized access")
+        return
+
+    text = (
+        "Use /broadcast <GROUP> <message> as text or caption.\n"
+        "Groups: NEVER_PURCHASED, ACTIVE_MEMBER, CHURNED, ALL."
+    )
+    keyboard = [
+        [InlineKeyboardButton(TEXTS['en']['back'], callback_data="admin_stats")]
+    ]
+
+    await query.edit_message_text(
+        text=text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="HTML"
     )

@@ -7,11 +7,11 @@ def setup():
     if not os.path.exists('.env'):
         print("Creating .env file...")
 
-        BOT_TOKEN = input("Enter your Telegram bot token: ").strip()
-        ADMIN_ID = input("Enter your Telegram user ID: ").strip()
+        bot_token = input("Enter your Telegram bot token: ").strip()
+        admin_id = input("Enter your Telegram user ID: ").strip()
 
         env_content = f"""BOT_TOKEN={bot_token}
-ADMIN_IDS=7940478393
+ADMIN_IDS={admin_id}
 ADMIN_PORT=8080
 ADMIN_HOST=0.0.0.0
 GOOGLE_CREDENTIALS_JSON=credentials.json

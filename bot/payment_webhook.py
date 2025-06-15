@@ -14,9 +14,10 @@ async def handle_payment_webhook(request: Request):
         data = await request.json()
         
         # Extract payment info (adjust based on your payment provider)
-        transaction_id = data.get("transaction_id")
-        user_id = data.get("user_id") 
-        plan_id = data.get("plan")
+        metadata = data.get("metadata", {})
+        transaction_id = data.get("transaction_id") or metadata.get("tx")
+        user_id = data.get("user_id") or metadata.get("user_id")
+        plan_id = data.get("plan") or metadata.get("plan")
         status = data.get("status")
         
         if status == "completed" and transaction_id:
@@ -25,12 +26,12 @@ async def handle_payment_webhook(request: Request):
             
             if payment_info:
                 # Mark payment as completed
-                payment_generator.mark_payment_completed(transaction_id)
-                
+                payment_generator.mark_payment_completed(user_id, plan_id)
+
                 # Add subscriber
-                success = subscriber_manager.add_subscriber(
+                success = await subscriber_manager.add_subscriber(
                     user_id=user_id,
-                    plan_id=plan_id,
+                    plan_name=plan_id,
                     transaction_id=transaction_id
                 )
                 

@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Directory containing HTML text templates
+TEXT_TEMPLATE_DIR = os.getenv("TEXT_TEMPLATE_DIR", "templates")
+
 # Bot settings
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
@@ -28,17 +31,27 @@ PLAN_LINK_IDS = {
     "Full Year Experience": "LNK_253P067SB1"
 }
 
-def generate_bold_link(link_id: str, user_id: int) -> str:
+def generate_bold_link(link_id: str, user_id: int, tx_id: str) -> str:
+    """Return a BOLD checkout URL with user and transaction metadata."""
     return (
         f"https://checkout.bold.co/payment/{link_id}"
         f"?identity_key={BOLD_IDENTITY_KEY}"
         f"&metadata[user_id]={user_id}"
+        f"&metadata[tx]={tx_id}"
     )
 
 # Channel settings
-CHANNELS = {
-    "channel_1":-1002068120499
-}
+channel_ids_str = os.getenv("CHANNEL_IDS")
+if channel_ids_str:
+    try:
+        parsed_ids = [int(cid) for cid in channel_ids_str.replace(',', ' ').split() if cid]
+    except ValueError as e:
+        print(f"Warning: Error parsing CHANNEL_IDS: {e}")
+        parsed_ids = []
+else:
+    parsed_ids = [-1002068120499]
+
+CHANNELS = {f"channel_{i+1}": cid for i, cid in enumerate(parsed_ids)}
 
 ALL_CHANNEL_IDS = list(CHANNELS.values())
 

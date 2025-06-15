@@ -179,7 +179,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"{MESSAGES['welcome']}\n\n{status_msg}",
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        parse_mode="HTML"
     )
 
 
@@ -199,9 +199,9 @@ async def show_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
     keyboard.append([InlineKeyboardButton("🔙 Volver", callback_data="back_to_start")])
     if query:
-        await query.edit_message_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+        await query.edit_message_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
     else:
-        await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+        await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
 
 
 async def select_plan(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -228,7 +228,7 @@ async def select_plan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("💳 Pagar Ahora", url=payment_link)],
         [InlineKeyboardButton("🔙 Ver Otros Planes", callback_data="show_plans")]
     ]
-    await query.edit_message_text(instructions, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+    await query.edit_message_text(instructions, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -238,9 +238,9 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(MESSAGES["help_text"], reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("💎 Ver Planes", callback_data="show_plans")],
             [InlineKeyboardButton("🔙 Volver", callback_data="back_to_start")]
-        ]), parse_mode='Markdown')
+        ]), parse_mode="HTML")
     else:
-        await update.message.reply_text(MESSAGES["help_text"], parse_mode='Markdown')
+        await update.message.reply_text(MESSAGES["help_text"], parse_mode="HTML")
 
 
 # ---------------------------------------------------------------------------

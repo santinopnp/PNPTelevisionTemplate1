@@ -29,10 +29,16 @@ def main():
     try:
         from bot.config import BOT_TOKEN, ADMIN_IDS
         from bot.start import start_command, help_command
-        from bot.admin import admin_command, stats_command, admin_help_command
+        from bot.admin import (
+            admin_command,
+            stats_command,
+            admin_help_command,
+            broadcast_command,
+        )
         from bot.plans import plans_command
         from bot.callbacks import handle_callback
         from bot.expiration_task import check_expired_users
+        from bot.broadcast import handle_unsubscribe
 
         logger.info(f"Bot Token: {BOT_TOKEN}")
         logger.info(f"Admin IDs: {ADMIN_IDS}")
@@ -45,6 +51,8 @@ def main():
         app.add_handler(CommandHandler("admin", admin_command))
         app.add_handler(CommandHandler("stats", stats_command))
         app.add_handler(CommandHandler("admin_help", admin_help_command))
+        app.add_handler(CommandHandler("broadcast", broadcast_command))
+        app.add_handler(CallbackQueryHandler(handle_unsubscribe, pattern="^broadcast_unsub$"))
         app.add_handler(CallbackQueryHandler(handle_callback))
         app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, notify_kicked_users))
 

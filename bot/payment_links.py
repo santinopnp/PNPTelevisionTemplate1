@@ -11,8 +11,12 @@ class PaymentLinkGenerator:
     def __init__(self):
         self.active_links = {}  # Store active payment links
     
-    def generate_payment_link(self, user_id: int, plan_name: str) -> str:
-        """Generate BOLD payment link with user metadata"""
+    def generate_payment_link(self, user_id: int, plan_name: str) -> tuple[str, str]:
+        """Generate BOLD payment link with user metadata.
+
+        Returns a tuple ``(url, transaction_id)`` so the caller can
+        keep track of the pending payment.
+        """
         
         # Get link ID for plan
         link_id = PLAN_LINK_IDS.get(plan_name)
@@ -25,7 +29,7 @@ class PaymentLinkGenerator:
         transaction_id = hashlib.md5(unique_string.encode()).hexdigest()[:12]
         
         # Generate BOLD URL with metadata
-        payment_url = generate_bold_link(link_id, user_id)
+        payment_url = generate_bold_link(link_id, user_id, transaction_id)
         
         # Store link for verification
         self.active_links[transaction_id] = {
@@ -37,7 +41,7 @@ class PaymentLinkGenerator:
             "payment_url": payment_url
         }
         
-        return payment_url
+        return payment_url, transaction_id
     
     def verify_payment_link(self, transaction_id: str) -> Optional[Dict]:
         """Verify if payment link exists and is valid"""

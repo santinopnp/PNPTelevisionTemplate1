@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import os
+from bot.config import TEXT_TEMPLATE_DIR
+
 TEXTS = {
     "en": {
         # Basic commands
@@ -158,3 +161,31 @@ _Nota:_ Todos los elementos de video (props, shows, sustancias simuladas) son so
 _Los comandos de admin solo estan disponibles para usuarios autorizados._"""
     }
 }
+
+
+def _load_html_templates(language: str) -> dict:
+    """Load HTML templates for a given language"""
+    templates = {}
+    lang_dir = os.path.join(TEXT_TEMPLATE_DIR, language)
+    if os.path.isdir(lang_dir):
+        for name in os.listdir(lang_dir):
+            if name.endswith(".html"):
+                key = name[:-5]
+                file_path = os.path.join(lang_dir, name)
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        templates[key] = f.read()
+                except Exception as e:
+                    print(f"Error loading template {file_path}: {e}")
+    return templates
+
+
+def _apply_overrides() -> None:
+    """Override default TEXTS with HTML templates if present"""
+    for lang in list(TEXTS.keys()):
+        templates = _load_html_templates(lang)
+        if templates:
+            TEXTS[lang].update(templates)
+
+
+_apply_overrides()

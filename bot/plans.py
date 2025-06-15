@@ -28,7 +28,7 @@ Choose your perfect plan below:"""
         await update.message.reply_text(
             text=text,
             reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode='Markdown'
+            parse_mode="HTML"
         )
         
     except Exception as e:

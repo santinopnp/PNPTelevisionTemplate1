@@ -3,6 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 import logging
 from bot.texts import TEXTS
+from bot.interaction_logger import interaction_logger
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +11,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command"""
     try:
         user = update.effective_user
+        interaction_logger.log(user.id, "start")
         logger.info(f"User {user.id} ({user.full_name}) started the bot")
         
         # Language selection keyboard
@@ -30,7 +32,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             welcome_text,
             reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode='Markdown'
+            parse_mode="HTML"
         )
         
     except Exception as e:
@@ -43,6 +45,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command"""
     try:
+        interaction_logger.log(update.effective_user.id, "help")
         help_text = """📺 **PNP Television Bot Ultimate**
 
 **Available Commands:**
@@ -63,7 +66,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 **Admin Panel:** http://localhost:8080"""
         
-        await update.message.reply_text(help_text, parse_mode='Markdown')
+        await update.message.reply_text(help_text, parse_mode="HTML")
         
     except Exception as e:
         logger.error(f"Error in help_command: {e}")
