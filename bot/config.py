@@ -28,11 +28,14 @@ PLAN_LINK_IDS = {
     "Full Year Experience": "LNK_253P067SB1"
 }
 
-def generate_bold_link(link_id: str, user_id: int) -> str:
+def generate_bold_link(link_id: str, user_id: int, plan_id: str) -> str:
+    """Generate a Bold.co payment URL including the plan identifier."""
+
     return (
         f"https://checkout.bold.co/payment/{link_id}"
         f"?identity_key={BOLD_IDENTITY_KEY}"
         f"&metadata[user_id]={user_id}"
+        f"&metadata[plan_id]={plan_id}"
     )
 
 # Channel settings

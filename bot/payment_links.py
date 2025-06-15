@@ -3,7 +3,7 @@ import hashlib
 import time
 import json
 from typing import Dict, Optional
-from bot.config import generate_bold_link, PLAN_LINK_IDS
+from bot.config import generate_bold_link, PLAN_LINK_IDS, PLANS
 
 class PaymentLinkGenerator:
     """Generate dynamic payment links with BOLD system"""
@@ -12,12 +12,21 @@ class PaymentLinkGenerator:
         self.active_links = {}  # Store active payment links
     
     def generate_payment_link(self, user_id: int, plan_name: str) -> str:
-        """Generate BOLD payment link with user metadata"""
-        
+        """Generate BOLD payment link with user and plan metadata."""
+
         # Get link ID for plan
         link_id = PLAN_LINK_IDS.get(plan_name)
         if not link_id:
             raise ValueError(f"No link ID found for plan: {plan_name}")
+
+        # Determine plan identifier used in PLANS
+        plan_id = None
+        for p_id, info in PLANS.items():
+            if info["name"] == plan_name:
+                plan_id = p_id
+                break
+        if plan_id is None:
+            raise ValueError(f"No plan identifier found for plan: {plan_name}")
         
         # Create unique transaction ID
         timestamp = int(time.time())
@@ -25,12 +34,13 @@ class PaymentLinkGenerator:
         transaction_id = hashlib.md5(unique_string.encode()).hexdigest()[:12]
         
         # Generate BOLD URL with metadata
-        payment_url = generate_bold_link(link_id, user_id)
+        payment_url = generate_bold_link(link_id, user_id, plan_id)
         
         # Store link for verification
         self.active_links[transaction_id] = {
             "user_id": user_id,
             "plan_name": plan_name,
+            "plan_id": plan_id,
             "link_id": link_id,
             "created_at": timestamp,
             "status": "pending",
@@ -61,3 +71,4 @@ class PaymentLinkGenerator:
 
 # Global instance
 payment_generator = PaymentLinkGenerator()
+
