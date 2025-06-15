@@ -19,7 +19,9 @@ if admin_ids_str:
         print(f"Warning: Error parsing ADMIN_IDS: {e}")
 
 # Payment settings
-BOLD_IDENTITY_KEY = os.getenv("BOLD_IDENTITY_KEY", "LgANsB3U4Qsr1hWWG3dBFXdxPZd4VheS-bvuk2Vzi7E")
+BOLD_IDENTITY_KEY = os.getenv("BOLD_IDENTITY_KEY")
+if not BOLD_IDENTITY_KEY:
+    raise ValueError("BOLD_IDENTITY_KEY must be set in environment variables")
 
 PLAN_LINK_IDS = {
     "Trial Trip": "LNK_O7C5LTPYFP",
