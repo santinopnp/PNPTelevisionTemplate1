@@ -1,11 +1,10 @@
 {
-    "build": {
-        "env": {
-            "PYTHON_VERSION": "3.11"
-        }
-    },
-    "start": "python run_bot.py",
-    "deploy": {
-        "restartPolicyType": "ON_FAILURE"
-    }
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "supervisord -c supervisord.conf",
+    "restartPolicyType": "ON_FAILURE"
+  }
 }
