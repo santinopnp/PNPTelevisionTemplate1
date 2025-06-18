@@ -291,7 +291,7 @@ async def show_admin_stats(query, user_id):
         await query.edit_message_text("⛔ Unauthorized access")
         return
     
-    stats = subscriber_manager.get_stats()
+    stats = await subscriber_manager.get_stats()
 
     text = (
         "📊 **Bot Statistics**\n\n"
