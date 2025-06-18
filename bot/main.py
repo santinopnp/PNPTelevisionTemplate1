@@ -77,7 +77,7 @@ class BotHandlers:
             "Subscription Options / Opciones de Suscripción:\n"
             "• ✈️ Trial Trip — $14.99 / 7 días\n"
             "• ☁️ Cloudy Month — $24.99 / 30 días\n"
-            "• 🔁 Frequent Flyer — $39.99 / 2 meses\n"
+            "• 🔁 Frequent Flyer — $49.99 / 3 meses\n"
             "• 🏄 Slam Surfer — $79.99 / 6 meses\n"
             "• 🌐 Full Year — $99.99 / 12 meses"
         )

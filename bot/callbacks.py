@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 import logging
 from bot.texts import TEXTS
 from bot.config import PLANS, ADMIN_IDS
+from bot.subscriber_manager import subscriber_manager
 
 logger = logging.getLogger(__name__)
 
@@ -290,27 +291,21 @@ async def show_admin_stats(query, user_id):
         await query.edit_message_text("⛔ Unauthorized access")
         return
     
-    text = """📊 **Bot Statistics**
+    stats = subscriber_manager.get_stats()
 
-👥 Total users: 0
-✅ Active subscriptions: 0
-📅 New users today: 0
-💰 Total revenue: $0.00
+    text = (
+        "📊 **Bot Statistics**\n\n"
+        f"👥 Total users: {stats['total']}\n"
+        f"✅ Active subscriptions: {stats['active']}\n"
+        "Last updated: just now"
+    )
 
-**Plan Distribution:**
-• Trial Trip: 0
-• Monthly Adventure: 0
-• Frequent Flyer: 0
-• Full Year Experience: 0
+    keyboard = [[InlineKeyboardButton("🔄 Refresh", callback_data="admin_stats")]]
 
-Last updated: Just now"""
-    
-    keyboard = [
-        [InlineKeyboardButton("🔄 Refresh", callback_data="admin_stats")]
-    ]
-    
     await query.edit_message_text(
         text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
+
     )
+
