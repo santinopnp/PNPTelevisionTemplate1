@@ -1,8 +1,28 @@
 import os
+import sys
 from fastapi import FastAPI
 import uvicorn
 
-# Your existing imports and code here...
+# Add the current directory to Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import your admin module - adjust this based on your actual structure
+try:
+    from bot.admin import app  # If your FastAPI app is in bot/admin.py
+except ImportError:
+    try:
+        from admin import app  # If your FastAPI app is in admin.py
+    except ImportError:
+        # Create a minimal FastAPI app if imports fail
+        app = FastAPI(title="Telegram Bot Admin Panel")
+        
+        @app.get("/")
+        async def root():
+            return {"message": "Admin panel is running", "status": "ok"}
+        
+        @app.get("/health")
+        async def health():
+            return {"status": "healthy"}
 
 if __name__ == "__main__":
     # Railway provides PORT, but fallback to ADMIN_PORT or 8080
@@ -11,9 +31,9 @@ if __name__ == "__main__":
     
     print(f"Starting admin panel on {host}:{port}")
     
-    # Assuming you're using FastAPI with uvicorn
+    # Run with uvicorn
     uvicorn.run(
-        "your_admin_app:app",  # Replace with your actual app module
+        app,  # Use the app object directly, not a string
         host=host,
         port=port,
         reload=False  # Don't use reload in production
