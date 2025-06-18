@@ -10,7 +10,7 @@ def setup():
         BOT_TOKEN = input("Enter your Telegram bot token: ").strip()
         ADMIN_ID = input("Enter your Telegram user ID: ").strip()
 
-        env_content = f"""BOT_TOKEN={bot_token}
+        env_content = f"""BOT_TOKEN={BOT_TOKEN}
 ADMIN_IDS=7940478393
 ADMIN_PORT=8080
 ADMIN_HOST=0.0.0.0
