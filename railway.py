@@ -12,7 +12,7 @@ railway_config = {
 }
 
 import json
-railway_path = "/mnt/data/railway.json"
+railway_path = "railway.json"
 with open(railway_path, "w") as f:
     json.dump(railway_config, f, indent=4)
 
