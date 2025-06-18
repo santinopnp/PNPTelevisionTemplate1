@@ -56,7 +56,7 @@ PLANS = {
     },
     "lifetime": {
         "name": "LIFETIME PASS",
-        "price": "$199.99",
+        "price": "$249.99",
         "days": 3650,
         "description": "Acceso ilimitado y de por vida a todo el contenido 💀"
     }

@@ -69,7 +69,8 @@ PLANS = {
     },
     "vip": {
         "name": "Frequent Flyer",
-        "price": "$29.99",
+
+        "price": "$49.99",
         "duration_days": 90,
         "link_id": "LNK_468D3W49LB"
     },
@@ -87,7 +88,7 @@ PLANS = {
     },
     "lifetime": {
         "name": "Lifetime Access",
-        "price": "$199.99",
+        "price": "$249.99",
         "duration_days": 3650,
         "link_id": "LNK_PNM53KLD99"
     }
