@@ -85,3 +85,4 @@ ADMIN_HOST = os.getenv("ADMIN_HOST", "0.0.0.0")
 
 # Database settings
 GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON", "credentials.json")
+DATABASE_URL = os.getenv("DATABASE_URL")
