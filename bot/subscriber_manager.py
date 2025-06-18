@@ -5,7 +5,12 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-import asyncpg
+try:
+    import asyncpg
+except ImportError as exc:
+    raise ImportError(
+        "asyncpg is required. Install dependencies using 'pip install -r requirements.txt'"
+    ) from exc
 from bot.config import CHANNELS, PLANS, BOT_TOKEN, DATABASE_URL
 from telegram import Bot
 
