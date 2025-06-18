@@ -1,10 +1,10 @@
-import asyncio
 from datetime import datetime
 from telegram import Bot
 from bot.config import BOT_TOKEN, CHANNELS
 from bot.subscriber_manager import subscriber_manager
 
 bot = Bot(token=BOT_TOKEN)
+
 
 async def check_expired_users():
     expired_users = []
@@ -16,7 +16,7 @@ async def check_expired_users():
                 exp_date = datetime.fromisoformat(data["expires_at"])
                 if exp_date < now:
                     expired_users.append(int(uid))
-            except:
+            except Exception:
                 continue
 
     for user_id in expired_users:

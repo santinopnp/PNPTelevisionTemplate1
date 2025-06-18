@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 # Token del bot (obtener de @BotFather)
 BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
 
+
 class BotMenus:
     @staticmethod
     def main_menu_keyboard():
@@ -32,6 +33,7 @@ class BotMenus:
             buttons.append([KeyboardButton("🎟️ Book a Private Show"), KeyboardButton("🎥 Join Private Show")])
 
         return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+
 
 class BotHandlers:
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -138,25 +140,20 @@ class BotHandlers:
         response = responses.get(text, "❓ Unknown command. Please use the menu.")
         await update.message.reply_text(response)
 
+
 def main():
     application = Application.builder().token(BOT_TOKEN).build()
     handlers = BotHandlers()
 
     application.add_handler(CommandHandler("start", handlers.start))
     application.add_handler(CallbackQueryHandler(handlers.handle_callback))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_persistent_buttons))
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_persistent_buttons)
+    )
 
     print("🤖 Bot running...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
+
 if __name__ == '__main__':
     main()
-
-import asyncio
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from bot.expiration_task import check_expired_users
-
-scheduler = AsyncIOScheduler()
-scheduler.add_job(check_expired_users, "interval", hours=24)
-scheduler.start()
-
