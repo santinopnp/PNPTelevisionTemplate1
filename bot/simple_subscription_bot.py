@@ -53,6 +53,12 @@ PLANS = {
         "price": "$99.99",
         "days": 365,
         "description": "Todo un año con los shows más calientes de PNP 🖤"
+    },
+    "lifetime": {
+        "name": "LIFETIME PASS",
+        "price": "$249.99",
+        "days": 3650,
+        "description": "Acceso ilimitado y de por vida a todo el contenido 💀"
     }
 }
 
@@ -62,7 +68,8 @@ PAYMENT_LINKS = {
     "month": os.getenv("MONTH_PAYMENT_LINK", ""),
     "3month": os.getenv("3MONTH_PAYMENT_LINK", ""),
     "halfyear": os.getenv("HALFYEAR_PAYMENT_LINK", ""),
-    "year": os.getenv("YEAR_PAYMENT_LINK", "")
+    "year": os.getenv("YEAR_PAYMENT_LINK", ""),
+    "lifetime": os.getenv("LIFETIME_PAYMENT_LINK", "")
 }
 
 # Message templates
