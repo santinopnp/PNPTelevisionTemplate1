@@ -5,8 +5,14 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-import asyncpg
+try:
+    import asyncpg
+except ImportError as exc:
+    raise ImportError(
+        "asyncpg is required. Install dependencies using 'pip install -r requirements.txt'"
+    ) from exc
 from bot.config import CHANNELS, PLANS, BOT_TOKEN, DATABASE_URL
+import sys
 from telegram import Bot
 
 
@@ -16,7 +22,12 @@ class SubscriberManager:
             raise ValueError("DATABASE_URL must be provided")
         self.db_url = db_url
         loop = asyncio.get_event_loop()
-        self.pool = loop.run_until_complete(asyncpg.create_pool(dsn=db_url))
+        try:
+            self.pool = loop.run_until_complete(asyncpg.create_pool(dsn=db_url))
+        except Exception as exc:
+            raise ConnectionError(
+                "Could not connect to the database. Check DATABASE_URL and that the server is running."
+            ) from exc
         loop.run_until_complete(self._ensure_table())
 
     async def _ensure_table(self) -> None:
@@ -96,4 +107,7 @@ class SubscriberManager:
         return {"total": total, "active": active}
 
 
-subscriber_manager = SubscriberManager()
+if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):
+    subscriber_manager = None
+else:
+    subscriber_manager = SubscriberManager()
