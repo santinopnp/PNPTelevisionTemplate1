@@ -28,7 +28,7 @@ async def handle_payment_webhook(request: Request):
                 payment_generator.mark_payment_completed(transaction_id)
                 
                 # Add subscriber
-                success = subscriber_manager.add_subscriber(
+                success = await subscriber_manager.add_subscriber(
                     user_id=user_id,
                     plan_id=plan_id,
                     transaction_id=transaction_id
