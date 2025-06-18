@@ -23,9 +23,11 @@ BOLD_IDENTITY_KEY = os.getenv("BOLD_IDENTITY_KEY", "LgANsB3U4Qsr1hWWG3dBFXdxPZd4
 
 PLAN_LINK_IDS = {
     "Trial Trip": "LNK_O7C5LTPYFP",
-    "Monthly Adventure": "LNK_52ZQ7A0I9I", 
+    "Monthly Adventure": "LNK_52ZQ7A0I9I",
     "Frequent Flyer": "LNK_468D3W49LB",
-    "Full Year Experience": "LNK_253P067SB1"
+    "Half-Year Escape": "LNK_EMVGMPYMGJ",
+    "Full Year Experience": "LNK_253P067SB1",
+    "Lifetime Access": "LNK_PNM53KLD99"
 }
 
 def generate_bold_link(link_id: str, user_id: int, plan_id: str) -> str:
@@ -67,15 +69,27 @@ PLANS = {
     },
     "vip": {
         "name": "Frequent Flyer",
-        "price": "$29.99", 
+        "price": "$29.99",
         "duration_days": 90,
         "link_id": "LNK_468D3W49LB"
+    },
+    "halfyear": {
+        "name": "Half-Year Escape",
+        "price": "$79.99",
+        "duration_days": 180,
+        "link_id": "LNK_EMVGMPYMGJ"
     },
     "yearly": {
         "name": "Full Year Experience",
         "price": "$99.99",
         "duration_days": 365,
         "link_id": "LNK_253P067SB1"
+    },
+    "lifetime": {
+        "name": "Lifetime Access",
+        "price": "$199.99",
+        "duration_days": 3650,
+        "link_id": "LNK_PNM53KLD99"
     }
 }
 
