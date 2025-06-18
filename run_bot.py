@@ -62,7 +62,10 @@ def main():
             )
         )
 
-        app.job_queue.run_repeating(check_expired_users, interval=24 * 60 * 60)
+       if app.job_queue:
+    app.job_queue.run_repeating(check_expired_users, interval=24 * 60 * 60)
+else:
+    print("WARNING: JobQueue not available - scheduled tasks disabled")
 
         print("✅ Bot starting...")
         app.run_polling(drop_pending_updates=True)
