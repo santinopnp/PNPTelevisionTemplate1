@@ -68,9 +68,13 @@ class SubscriberManager:
             bot = Bot(token=BOT_TOKEN)
             for channel in CHANNELS.values():
                 try:
-                    await bot.invite_chat_member(chat_id=channel, user_id=user_id)
+                    invite_link = await bot.export_chat_invite_link(chat_id=channel)
+                    await bot.send_message(
+                        chat_id=user_id,
+                        text=f"Join {channel}: {invite_link}",
+                    )
                 except Exception as e:
-                    print(f"Error adding user {user_id} to {channel}: {e}")
+                    print(f"Error inviting user {user_id} to {channel}: {e}")
             return True
         except Exception as e:
             print(f"Error adding subscriber: {e}")
