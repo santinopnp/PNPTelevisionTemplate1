@@ -20,7 +20,7 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             await update.message.reply_text(TEXTS["en"]["admin_only"])
             return
 
-        stats = subscriber_manager.get_stats()
+        stats = await subscriber_manager.get_stats()
         keyboard = [
             [InlineKeyboardButton("📊 Statistics", callback_data="admin_stats")],
             [InlineKeyboardButton("🌐 Web Panel", url=f"http://{ADMIN_HOST}:{ADMIN_PORT}")],
@@ -45,7 +45,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             await update.message.reply_text(TEXTS["en"]["admin_only"])
             return
 
-        stats = subscriber_manager.get_stats()
+        stats = await subscriber_manager.get_stats()
         text = (
             "📊 **Bot Statistics**\n\n"
             f"👥 Total users: {stats['total']}\n"

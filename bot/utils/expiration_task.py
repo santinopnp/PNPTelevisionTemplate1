@@ -10,7 +10,7 @@ async def check_expired_users():
     expired_users = []
     now = datetime.now()
 
-    for record in subscriber_manager.get_all():
+    for record in await subscriber_manager.get_all():
         exp_date = record["expires_at"]
         if exp_date < now:
             expired_users.append(record["user_id"])
