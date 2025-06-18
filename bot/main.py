@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
@@ -7,7 +8,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Token del bot (obtener de @BotFather)
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 class BotMenus:
     @staticmethod
@@ -139,6 +140,10 @@ class BotHandlers:
         await update.message.reply_text(response)
 
 def main():
+    if not BOT_TOKEN:
+        logger.error("❌ BOT_TOKEN not configurado")
+        return
+
     application = Application.builder().token(BOT_TOKEN).build()
     handlers = BotHandlers()
 
@@ -146,17 +151,16 @@ def main():
     application.add_handler(CallbackQueryHandler(handlers.handle_callback))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_persistent_buttons))
 
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from bot.utils.expiration_task import check_expired_users
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_expired_users, "interval", hours=24)
+    scheduler.start()
+
     print("🤖 Bot running...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
     main()
-
-import asyncio
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from bot.utils.expiration_task import check_expired_users
-
-scheduler = AsyncIOScheduler()
-scheduler.add_job(check_expired_users, "interval", hours=24)
-scheduler.start()
 

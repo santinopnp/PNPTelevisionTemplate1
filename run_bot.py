@@ -44,8 +44,8 @@ def main():
         from bot.callbacks import handle_callback
         from bot.utils.expiration_task import check_expired_users
 
-        logger.info(f"Bot Token: {BOT_TOKEN}")
-        logger.info(f"Admin IDs: {ADMIN_IDS}")
+        # logger.info(f"Bot Token: {BOT_TOKEN}")
+        # logger.info(f"Admin IDs: {ADMIN_IDS}")
 
         app = Application.builder().token(BOT_TOKEN).build()
 
