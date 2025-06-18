@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
@@ -7,7 +8,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Token del bot (obtener de @BotFather)
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 class BotMenus:
     @staticmethod
@@ -139,6 +140,10 @@ class BotHandlers:
         await update.message.reply_text(response)
 
 def main():
+    if not BOT_TOKEN:
+        logger.error("❌ BOT_TOKEN not configurado")
+        return
+
     application = Application.builder().token(BOT_TOKEN).build()
     handlers = BotHandlers()
 
