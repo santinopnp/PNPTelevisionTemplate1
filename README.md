@@ -45,6 +45,10 @@ Other channel IDs can be defined in `bot/config.py` if multiple channels are use
 * `python run_admin.py` – launch the FastAPI admin panel.
 * `python run_simple_bot.py` – start the simplified subscription bot.
 
+`bot/start.py` only defines command handlers. Run `python run_bot.py` from the
+project root to start the full bot; executing `bot/start.py` directly will fail
+with `ModuleNotFoundError: bot`.
+
 ## Deploying on Railway
 
 A [`railway.json`](railway.json) configuration is provided.  To deploy:
