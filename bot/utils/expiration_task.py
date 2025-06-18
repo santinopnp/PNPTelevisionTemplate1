@@ -10,14 +10,10 @@ async def check_expired_users():
     expired_users = []
     now = datetime.now()
 
-    for uid, data in subscriber_manager.subscribers.get("users", {}).items():
-        if "expires_at" in data:
-            try:
-                exp_date = datetime.fromisoformat(data["expires_at"])
-                if exp_date < now:
-                    expired_users.append(int(uid))
-            except:
-                continue
+    for record in subscriber_manager.get_all():
+        exp_date = record["expires_at"]
+        if exp_date < now:
+            expired_users.append(record["user_id"])
 
     for user_id in expired_users:
         for channel in CHANNELS.values():
