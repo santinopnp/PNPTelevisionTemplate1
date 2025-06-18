@@ -54,3 +54,9 @@ A [`railway.json`](railway.json) configuration is provided.  To deploy:
 3. The project will build using Python 3.11 and run `python run_bot.py` as specified in `railway.json`.
 4. Deploy the service.  Railway will restart the bot on failure as configured.
 
+Railway automatically installs the dependencies listed in
+[`requirements.txt`](requirements.txt) when building the project. If the bot
+fails with `No module named 'asyncpg'` it usually means the dependencies were
+not installed. Re‑deploy or run `pip install -r requirements.txt` locally to
+verify the environment.
+
