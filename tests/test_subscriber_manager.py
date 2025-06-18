@@ -2,6 +2,12 @@ import unittest
 from unittest.mock import AsyncMock, patch
 import importlib
 import sys
+import os
+
+# Ensure the 'bot' package is importable
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 # Provide fake DB connection before importing the module
 class FakeCursor:
@@ -15,12 +21,31 @@ class FakeCursor:
         pass
 
 class FakeConn:
-    def cursor(self):
-        return FakeCursor()
-    def commit(self):
+    async def execute(self, *args, **kwargs):
         pass
 
-with patch('psycopg2.connect', return_value=FakeConn()):
+    async def fetch(self, *args, **kwargs):
+        return []
+
+    async def fetchval(self, *args, **kwargs):
+        return 0
+
+class FakeAcquire:
+    async def __aenter__(self):
+        return FakeConn()
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+class FakePool:
+    def acquire(self):
+        return FakeAcquire()
+
+async def fake_create_pool(*args, **kwargs):
+    return FakePool()
+
+with patch('asyncpg.create_pool', side_effect=fake_create_pool), \
+     patch('psycopg2.connect', return_value=FakeConn()):
     if 'bot.subscriber_manager' in sys.modules:
         importlib.reload(sys.modules['bot.subscriber_manager'])
     else:
@@ -31,7 +56,7 @@ class TestSubscriberManager(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         class TestManager(SubscriberManager):
             def __init__(self):
-                self.conn = FakeConn()
+                self.pool = FakePool()
         self.manager = TestManager()
 
     async def test_add_subscriber_invite(self):
