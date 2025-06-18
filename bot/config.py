@@ -5,9 +5,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Bot settings
+import sys
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN must be set in .env file")
+    # When running under pytest, allow a dummy token to avoid import errors
+    if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):
+        BOT_TOKEN = "TEST_TOKEN"
+    else:
+        raise ValueError("BOT_TOKEN must be set in .env file")
 
 # Parse ADMIN_IDS
 admin_ids_str = os.getenv("ADMIN_IDS", "")
@@ -21,7 +27,10 @@ if admin_ids_str:
 # Payment settings
 BOLD_IDENTITY_KEY = os.getenv("BOLD_IDENTITY_KEY")
 if not BOLD_IDENTITY_KEY:
-    raise ValueError("BOLD_IDENTITY_KEY must be set in .env file")
+    if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):
+        BOLD_IDENTITY_KEY = "TEST_KEY"
+    else:
+        raise ValueError("BOLD_IDENTITY_KEY must be set in .env file")
 
 PLAN_LINK_IDS = {
     "Trial Trip": "LNK_O7C5LTPYFP",
