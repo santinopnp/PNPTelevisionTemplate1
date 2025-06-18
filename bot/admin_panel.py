@@ -29,7 +29,7 @@ async def payment_webhook(request: Request):
 async def get_stats():
     """Get bot statistics"""
     try:
-        stats = subscriber_manager.get_stats()
+        stats = await subscriber_manager.get_stats()
         return {"success": True, "data": stats}
     except Exception as e:
         logger.error(f"Error getting stats: {e}")
