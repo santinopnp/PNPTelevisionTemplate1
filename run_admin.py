@@ -5,8 +5,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 if __name__ == "__main__":
-    from bot.admin_panel import app
+    try:
+        from bot.admin_panel import app
+    except (ModuleNotFoundError, ImportError) as e:
+        if getattr(e, 'name', '') == 'asyncpg':
+            print("❌ Error: asyncpg is not installed. Run 'pip install -r requirements.txt'")
+        else:
+            print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
     
     port = int(os.getenv("ADMIN_PORT", 8080))
     host = os.getenv("ADMIN_HOST", "0.0.0.0")
