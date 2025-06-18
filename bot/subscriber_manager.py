@@ -63,7 +63,7 @@ class SubscriberManager:
             bot = Bot(token=BOT_TOKEN)
             for channel in CHANNELS.values():
                 try:
-                    await bot.invite_chat_member(chat_id=channel, user_id=user_id)
+                    await bot.add_chat_members(chat_id=channel, user_ids=[user_id])
                 except Exception as e:
                     print(f"Error adding user {user_id} to {channel}: {e}")
             return True
