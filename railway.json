@@ -1,0 +1,11 @@
+{
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.11"
+    }
+  },
+  "deploy": {
+    "startCommand": "python run_bot.py",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
