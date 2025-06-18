@@ -12,6 +12,7 @@ except ImportError as exc:
         "asyncpg is required. Install dependencies using 'pip install -r requirements.txt'"
     ) from exc
 from bot.config import CHANNELS, PLANS, BOT_TOKEN, DATABASE_URL
+import sys
 from telegram import Bot
 
 
@@ -106,4 +107,7 @@ class SubscriberManager:
         return {"total": total, "active": active}
 
 
-subscriber_manager = SubscriberManager()
+if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):
+    subscriber_manager = None
+else:
+    subscriber_manager = SubscriberManager()

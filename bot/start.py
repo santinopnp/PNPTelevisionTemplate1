@@ -4,6 +4,13 @@ from telegram.ext import ContextTypes
 import logging
 from bot.texts import TEXTS
 
+
+if __name__ == "__main__":
+    print("This module provides Telegram command handlers and isn't intended "
+          "to be executed directly.\n"
+          "Run 'python run_bot.py' from the project root to start the bot.")
+    exit(1)
+
 logger = logging.getLogger(__name__)
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
