@@ -1,15 +1,18 @@
 # run_bot.py
-import sys, os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import logging
 import sys
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
-from telegram import Update
-from telegram.constants import ChatAction
+
 from dotenv import load_dotenv
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram.ext import ContextTypes
+from telegram import Update
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 load_dotenv()
 
@@ -21,9 +24,16 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-async def notify_kicked_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+async def notify_kicked_users(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
     if update.message:
-        await update.message.reply_text("Has sido expulsado del canal por expiración de tu membresía. Puedes renovarla en cualquier momento para volver a ingresar. ✨")
+        await update.message.reply_text(
+            "Has sido expulsado del canal por expiración de tu membresía. "
+            "Puedes renovarla en cualquier momento para volver a ingresar. ✨"
+        )
+
 
 def main():
     try:
@@ -32,7 +42,7 @@ def main():
         from bot.admin import admin_command, stats_command, admin_help_command
         from bot.plans import plans_command
         from bot.callbacks import handle_callback
-        from bot.expiration_task import check_expired_users
+        from bot.utils.expiration_task import check_expired_users
 
         logger.info(f"Bot Token: {BOT_TOKEN}")
         logger.info(f"Admin IDs: {ADMIN_IDS}")
@@ -46,11 +56,13 @@ def main():
         app.add_handler(CommandHandler("stats", stats_command))
         app.add_handler(CommandHandler("admin_help", admin_help_command))
         app.add_handler(CallbackQueryHandler(handle_callback))
-        app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, notify_kicked_users))
+        app.add_handler(
+            MessageHandler(
+                filters.StatusUpdate.LEFT_CHAT_MEMBER, notify_kicked_users
+            )
+        )
 
-        scheduler = AsyncIOScheduler()
-        scheduler.add_job(check_expired_users, "interval", hours=24)
-        scheduler.start()
+        app.job_queue.run_repeating(check_expired_users, interval=24 * 60 * 60)
 
         print("✅ Bot starting...")
         app.run_polling(drop_pending_updates=True)
@@ -59,6 +71,7 @@ def main():
         print(f"❌ Error: {e}")
         import traceback
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()
