@@ -70,7 +70,7 @@ else:
         print("✅ Bot starting...")
         app.run_polling(drop_pending_updates=True)
 
-    except ModuleNotFoundError as e:
+    except (ModuleNotFoundError, ImportError) as e:
         if e.name == "asyncpg":
             print("❌ Error: asyncpg is not installed. Run 'pip install -r requirements.txt'")
         else:

@@ -1,4 +1,3 @@
-=======
 # PNP Television Bot Template
 
 This repository contains a Telegram bot for managing paid subscriptions to several channels.  It includes a standard bot with an admin panel as well as a simplified subscription bot.
