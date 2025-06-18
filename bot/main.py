@@ -146,17 +146,16 @@ def main():
     application.add_handler(CallbackQueryHandler(handlers.handle_callback))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_persistent_buttons))
 
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from bot.utils.expiration_task import check_expired_users
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_expired_users, "interval", hours=24)
+    scheduler.start()
+
     print("🤖 Bot running...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
     main()
-
-import asyncio
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from bot.utils.expiration_task import check_expired_users
-
-scheduler = AsyncIOScheduler()
-scheduler.add_job(check_expired_users, "interval", hours=24)
-scheduler.start()
 
