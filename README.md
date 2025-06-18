@@ -60,3 +60,7 @@ fails with `No module named 'asyncpg'` it usually means the dependencies were
 not installed. Re‑deploy or run `pip install -r requirements.txt` locally to
 verify the environment.
 
+If the bot exits with `ConnectionRefusedError` during startup, the PostgreSQL
+server may not be reachable. Verify that `DATABASE_URL` points to a running
+database that accepts connections.
+
