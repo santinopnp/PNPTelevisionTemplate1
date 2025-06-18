@@ -67,6 +67,13 @@ def main():
         print("✅ Bot starting...")
         app.run_polling(drop_pending_updates=True)
 
+    except ModuleNotFoundError as e:
+        if e.name == "asyncpg":
+            print("❌ Error: asyncpg is not installed. Run 'pip install -r requirements.txt'")
+        else:
+            print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
