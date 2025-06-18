@@ -1,21 +1,20 @@
-# -*- coding: utf-8 -*-
-import uvicorn
 import os
-from dotenv import load_dotenv
+from fastapi import FastAPI
+import uvicorn
 
-load_dotenv()
+# Your existing imports and code here...
 
 if __name__ == "__main__":
-    from bot.admin_panel import app
-    
-    port = int(os.getenv("ADMIN_PORT", 8080))
+    # Railway provides PORT, but fallback to ADMIN_PORT or 8080
+    port = int(os.getenv("PORT", os.getenv("ADMIN_PORT", "8080")))
     host = os.getenv("ADMIN_HOST", "0.0.0.0")
     
-    print(f"Starting admin panel on http://{host}:{port}")
+    print(f"Starting admin panel on {host}:{port}")
     
+    # Assuming you're using FastAPI with uvicorn
     uvicorn.run(
-        app, 
-        host=host, 
+        "your_admin_app:app",  # Replace with your actual app module
+        host=host,
         port=port,
-        log_level="info"
+        reload=False  # Don't use reload in production
     )
