@@ -1,6 +1,11 @@
 import os
 
+# Helper script to create a minimal `.env` file with the required
+# environment variables for the bot.
+
 def setup():
+    """Interactive helper to create a basic `.env` file."""
+
     print("PNP Television Bot Ultimate - Setup")
     print("=" * 40)
 
@@ -10,12 +15,10 @@ def setup():
         BOT_TOKEN = input("Enter your Telegram bot token: ").strip()
         ADMIN_ID = input("Enter your Telegram user ID: ").strip()
 
-        env_content = f"""BOT_TOKEN={BOT_TOKEN}
-ADMIN_IDS=7940478393
-ADMIN_PORT=8080
-ADMIN_HOST=0.0.0.0
-GOOGLE_CREDENTIALS_JSON=credentials.json
-"""  # triple comillas escapadas
+        env_content = (
+            f"BOT_TOKEN={BOT_TOKEN}\n"
+            f"ADMIN_IDS={ADMIN_ID}\n"
+        )
 
         with open('.env', 'w', encoding='utf-8') as f:
             f.write(env_content)
