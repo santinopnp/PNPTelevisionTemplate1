@@ -44,8 +44,7 @@ class FakePool:
 async def fake_create_pool(*args, **kwargs):
     return FakePool()
 
-with patch('asyncpg.create_pool', side_effect=fake_create_pool), \
-     patch('psycopg2.connect', return_value=FakeConn()):
+with patch('asyncpg.create_pool', side_effect=fake_create_pool):
     if 'bot.subscriber_manager' in sys.modules:
         importlib.reload(sys.modules['bot.subscriber_manager'])
     else:
