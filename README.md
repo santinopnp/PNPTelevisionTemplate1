@@ -1,4 +1,3 @@
-=======
 # PNP Television Bot Template
 
 This repository contains a Telegram bot for managing paid subscriptions to several channels.  It includes a standard bot with an admin panel as well as a simplified subscription bot.
@@ -45,6 +44,10 @@ Other channel IDs can be defined in `bot/config.py` if multiple channels are use
 * `python run_admin.py` – launch the FastAPI admin panel.
 * `python run_simple_bot.py` – start the simplified subscription bot.
 
+`bot/start.py` only defines command handlers. Run `python run_bot.py` from the
+project root to start the full bot; executing `bot/start.py` directly will fail
+with `ModuleNotFoundError: bot`.
+
 ## Deploying on Railway
 
 A [`railway.json`](railway.json) configuration is provided.  To deploy:
@@ -53,4 +56,14 @@ A [`railway.json`](railway.json) configuration is provided.  To deploy:
 2. Set all required environment variables in the Railway dashboard.
 3. The project will build using Python 3.11 and run `python run_bot.py` as specified in `railway.json`.
 4. Deploy the service.  Railway will restart the bot on failure as configured.
+
+Railway automatically installs the dependencies listed in
+[`requirements.txt`](requirements.txt) when building the project. If the bot
+fails with `No module named 'asyncpg'` it usually means the dependencies were
+not installed. Re‑deploy or run `pip install -r requirements.txt` locally to
+verify the environment.
+
+If the bot exits with `ConnectionRefusedError` during startup, the PostgreSQL
+server may not be reachable. Verify that `DATABASE_URL` points to a running
+database that accepts connections.
 

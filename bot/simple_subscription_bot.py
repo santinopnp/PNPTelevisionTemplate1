@@ -273,6 +273,7 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Logging configuration
 # ---------------------------------------------------------------------------
 
+os.makedirs('logs', exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
