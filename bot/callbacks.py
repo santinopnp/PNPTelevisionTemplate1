@@ -58,6 +58,13 @@ async def handle_language_selection(query, user_id, data):
     """Handle language selection"""
     lang = data.split("_")[1]
     user_languages[user_id] = lang
+
+    try:
+        from bot.subscriber_manager import subscriber_manager
+        if subscriber_manager:
+            await subscriber_manager.record_user(user_id, lang)
+    except Exception as e:
+        logger.error(f"Failed to store language for {user_id}: {e}")
     
     logger.info(f"User {user_id} selected language: {lang}")
     await show_age_verification(query, user_id)

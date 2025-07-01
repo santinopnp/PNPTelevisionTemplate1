@@ -2,6 +2,10 @@
 import subprocess
 import sys
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger(__name__)
 
 def check_supervisor_status():
     """Check if all programs are running"""
@@ -24,15 +28,15 @@ def check_supervisor_status():
                     status = parts[1]
                     
                     if status != 'RUNNING':
-                        print(f"ERROR: {program_name} is {status}")
+                        logger.error("ERROR: %s is %s", program_name, status)
                         all_running = False
                     else:
-                        print(f"OK: {program_name} is running")
+                        logger.info("OK: %s is running", program_name)
         
         return all_running
         
     except Exception as e:
-        print(f"ERROR checking supervisor status: {e}")
+        logger.error("ERROR checking supervisor status: %s", e)
         return False
 
 if __name__ == "__main__":
@@ -40,8 +44,8 @@ if __name__ == "__main__":
     time.sleep(5)
     
     if check_supervisor_status():
-        print("All services are running")
+        logger.info("All services are running")
         sys.exit(0)
     else:
-        print("Some services are not running")
+        logger.error("Some services are not running")
         sys.exit(1)

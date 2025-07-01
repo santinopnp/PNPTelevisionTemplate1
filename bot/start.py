@@ -18,6 +18,12 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user = update.effective_user
         logger.info(f"User {user.id} ({user.full_name}) started the bot")
+        try:
+            from bot.subscriber_manager import subscriber_manager
+            if subscriber_manager:
+                await subscriber_manager.record_user(user.id)
+        except Exception as e:
+            logger.error(f"Failed to record user {user.id}: {e}")
         
         # Language selection keyboard
         keyboard = [

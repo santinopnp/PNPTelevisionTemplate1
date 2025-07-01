@@ -2,8 +2,9 @@
 """Manage subscriber data using a PostgreSQL database asynchronously."""
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
+import logging
 
 try:
     import asyncpg
@@ -13,6 +14,8 @@ except ImportError as exc:
     ) from exc
 from bot.config import CHANNELS, PLANS, BOT_TOKEN, DATABASE_URL
 import sys
+
+logger = logging.getLogger(__name__)
 from telegram import Bot
 
 
@@ -43,6 +46,26 @@ class SubscriberManager:
                 )
                 """
             )
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_subscribers_expires_at ON subscribers (expires_at)"
+            )
+
+            await conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id BIGINT PRIMARY KEY
+                )
+                """
+            )
+            await conn.execute(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT"
+            )
+            await conn.execute(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP NOT NULL DEFAULT NOW()"
+            )
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_users_language ON users (language)"
+            )
 
     async def add_subscriber(self, user_id: int, plan_name: str, transaction_id: str = None) -> bool:
         try:
@@ -55,7 +78,8 @@ class SubscriberManager:
                 return False
 
             duration_days = plan_info["duration_days"]
-            start_date = datetime.utcnow()
+            # Use timezone-aware UTC datetime to avoid deprecation warning
+            start_date = datetime.now(timezone.utc)
             expiry_date = start_date + timedelta(days=duration_days)
 
             async with self.pool.acquire() as conn:
@@ -85,10 +109,11 @@ class SubscriberManager:
                         text=f"Join {channel}: {invite_link}",
                     )
                 except Exception as e:
-                    print(f"Error inviting user {user_id} to {channel}: {e}")
+                    logger.error("Error inviting user %s to %s: %s", user_id, channel, e)
+            await self.record_user(user_id)
             return True
         except Exception as e:
-            print(f"Error adding subscriber: {e}")
+            logger.error("Error adding subscriber: %s", e)
             return False
 
     async def get_all(self) -> List[Dict]:
@@ -105,6 +130,60 @@ class SubscriberManager:
                 "SELECT COUNT(*) FROM subscribers WHERE expires_at > NOW()"
             )
         return {"total": total, "active": active}
+
+    async def record_user(self, user_id: int, language: str | None = None) -> None:
+        """Insert or update a user in the tracking table."""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO users (user_id, language, last_seen)
+                VALUES ($1, $2, NOW())
+                ON CONFLICT (user_id) DO UPDATE SET
+                    language=COALESCE($2, users.language),
+                    last_seen=NOW()
+                """,
+                user_id,
+                language,
+            )
+
+    async def get_users(
+        self,
+        *,
+        language: str | None = None,
+        statuses: List[str] | None = None,
+    ) -> List[Dict]:
+        """Return users optionally filtered by language and subscription status."""
+        async with self.pool.acquire() as conn:
+            now = datetime.now(timezone.utc)
+            query = """
+                SELECT u.user_id, u.language,
+                       CASE
+                           WHEN s.expires_at IS NULL THEN 'never'
+                           WHEN s.expires_at > $1 THEN 'active'
+                           ELSE 'churned'
+                       END AS status
+                FROM users u
+                LEFT JOIN subscribers s ON u.user_id = s.user_id
+            """
+            args = [now]
+            conditions = []
+            if language:
+                args.append(language)
+                conditions.append(f"u.language = ${len(args)}")
+            if statuses:
+                placeholders = ", ".join(f"${len(args) + i + 1}" for i in range(len(statuses)))
+                conditions.append(
+                    f"(CASE WHEN s.expires_at IS NULL THEN 'never' WHEN s.expires_at > $1 THEN 'active' ELSE 'churned' END) IN ({placeholders})"
+                )
+                args.extend(statuses)
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+            rows = await conn.fetch(query, *args)
+
+        return [
+            {"user_id": r["user_id"], "language": r["language"], "status": r["status"]}
+            for r in rows
+        ]
 
 
 if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):
