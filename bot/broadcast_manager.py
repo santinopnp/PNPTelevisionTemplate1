@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
+from pathlib import Path
 import logging
 
 from telegram import Bot
@@ -20,9 +21,61 @@ logger = logging.getLogger(__name__)
 class BroadcastManager:
     """Manage broadcasts with optional scheduling and segmentation."""
 
-    def __init__(self, bot: Bot | None = None):
+    def __init__(self, bot: Bot | None = None, *, storage: str = "broadcast_schedule.json", send_delay: float = 0.05):
         self.bot = bot or Bot(token=BOT_TOKEN)
         self.scheduled: List[tuple[datetime, asyncio.Task]] = []
+        self.storage_path = Path(storage)
+        self.lock = asyncio.Lock()
+        self.send_delay = send_delay
+        asyncio.get_event_loop().create_task(self._load_persisted())
+
+    async def _load_persisted(self) -> None:
+        try:
+            if self.storage_path.exists():
+                import json
+                data = json.loads(self.storage_path.read_text())
+                now = datetime.now(timezone.utc)
+                for item in data:
+                    when = datetime.fromisoformat(item["when"])
+                    if when > now:
+                        self.schedule(
+                            when,
+                            text=item.get("text"),
+                            parse_mode=item.get("parse_mode"),
+                            photo=item.get("photo"),
+                            video=item.get("video"),
+                            animation=item.get("animation"),
+                            language=item.get("language"),
+                            statuses=item.get("statuses"),
+                            persist=False,
+                        )
+        except Exception as exc:
+            logger.error("Failed to load scheduled broadcasts: %s", exc)
+
+    async def _save_schedule(self) -> None:
+        try:
+            import json
+            data = [
+                {
+                    "when": w.isoformat(),
+                    "text": getattr(t, "_text", None),
+                    "parse_mode": getattr(t, "_parse", None),
+                    "photo": getattr(t, "_photo", None),
+                    "video": getattr(t, "_video", None),
+                    "animation": getattr(t, "_animation", None),
+                    "language": getattr(t, "_language", None),
+                    "statuses": getattr(t, "_statuses", None),
+                }
+                for w, t in self.scheduled
+            ]
+            self.storage_path.write_text(json.dumps(data))
+        except Exception as exc:
+            logger.error("Failed to save scheduled broadcasts: %s", exc)
+
+    async def _remove_task(self, fut: asyncio.Task) -> None:
+        async with self.lock:
+            self.scheduled = [(w, t) for (w, t) in self.scheduled if t is not fut]
+            await self._save_schedule()
 
     async def send(
         self,
@@ -67,6 +120,7 @@ class BroadcastManager:
                     )
             except Exception as exc:
                 logger.error("Error broadcasting to %s: %s", user["user_id"], exc)
+            await asyncio.sleep(self.send_delay)
 
     def schedule(
         self,
@@ -79,6 +133,7 @@ class BroadcastManager:
         animation: Optional[str] = None,
         language: Optional[str] = None,
         statuses: Optional[List[str]] = None,
+        persist: bool = True,
     ) -> None:
         """Schedule a broadcast message."""
         now = datetime.now(timezone.utc)
@@ -105,14 +160,26 @@ class BroadcastManager:
             )
 
         task = asyncio.create_task(_task())
-        self.scheduled.append((when, task))
+        # store params on task for persistence
+        task._text = text
+        task._parse = parse_mode
+        task._photo = photo
+        task._video = video
+        task._animation = animation
+        task._language = language
+        task._statuses = statuses
 
-        def _cleanup(fut: asyncio.Task) -> None:
-            self.scheduled = [
-                (w, t) for (w, t) in self.scheduled if t is not fut
-            ]
+        async def _cleanup(fut: asyncio.Task) -> None:
+            await self._remove_task(fut)
 
-        task.add_done_callback(_cleanup)
+        async def _add_task():
+            async with self.lock:
+                self.scheduled.append((when, task))
+                if persist:
+                    await self._save_schedule()
+
+        asyncio.get_event_loop().create_task(_add_task())
+        task.add_done_callback(lambda fut: asyncio.get_event_loop().create_task(_cleanup(fut)))
 
 
 broadcast_manager = BroadcastManager()

@@ -13,6 +13,7 @@ except ImportError as exc:
         "asyncpg is required. Install dependencies using 'pip install -r requirements.txt'"
     ) from exc
 from bot.config import CHANNELS, PLANS, BOT_TOKEN, DATABASE_URL
+from bot.db_migrations import apply_migrations
 import sys
 
 logger = logging.getLogger(__name__)
@@ -31,41 +32,10 @@ class SubscriberManager:
             raise ConnectionError(
                 "Could not connect to the database. Check DATABASE_URL and that the server is running."
             ) from exc
-        loop.run_until_complete(self._ensure_table())
 
-    async def _ensure_table(self) -> None:
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS subscribers (
-                    user_id BIGINT PRIMARY KEY,
-                    plan TEXT NOT NULL,
-                    start_date TIMESTAMP NOT NULL,
-                    expires_at TIMESTAMP NOT NULL,
-                    transaction_id TEXT
-                )
-                """
-            )
-            await conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_subscribers_expires_at ON subscribers (expires_at)"
-            )
+        # Apply database migrations to keep schema up to date
+        loop.run_until_complete(apply_migrations(self.pool))
 
-            await conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users (
-                    user_id BIGINT PRIMARY KEY
-                )
-                """
-            )
-            await conn.execute(
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT"
-            )
-            await conn.execute(
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP NOT NULL DEFAULT NOW()"
-            )
-            await conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_users_language ON users (language)"
-            )
 
     async def add_subscriber(self, user_id: int, plan_name: str, transaction_id: str = None) -> bool:
         try:
@@ -133,18 +103,22 @@ class SubscriberManager:
 
     async def record_user(self, user_id: int, language: str | None = None) -> None:
         """Insert or update a user in the tracking table."""
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO users (user_id, language, last_seen)
-                VALUES ($1, $2, NOW())
-                ON CONFLICT (user_id) DO UPDATE SET
-                    language=COALESCE($2, users.language),
-                    last_seen=NOW()
-                """,
-                user_id,
-                language,
-            )
+        try:
+            async with self.pool.acquire() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO users (user_id, language, last_seen)
+                    VALUES ($1, $2, NOW())
+                    ON CONFLICT (user_id) DO UPDATE SET
+                        language=COALESCE($2, users.language),
+                        last_seen=NOW()
+                    """,
+                    user_id,
+                    language,
+                )
+        except Exception as e:
+            logger.error("Error recording user %s: %s", user_id, e)
+            raise
 
     async def get_users(
         self,
@@ -153,32 +127,29 @@ class SubscriberManager:
         statuses: List[str] | None = None,
     ) -> List[Dict]:
         """Return users optionally filtered by language and subscription status."""
-        async with self.pool.acquire() as conn:
-            now = datetime.now(timezone.utc)
-            query = """
-                SELECT u.user_id, u.language,
-                       CASE
-                           WHEN s.expires_at IS NULL THEN 'never'
-                           WHEN s.expires_at > $1 THEN 'active'
-                           ELSE 'churned'
-                       END AS status
-                FROM users u
-                LEFT JOIN subscribers s ON u.user_id = s.user_id
-            """
-            args = [now]
-            conditions = []
-            if language:
-                args.append(language)
-                conditions.append(f"u.language = ${len(args)}")
-            if statuses:
-                placeholders = ", ".join(f"${len(args) + i + 1}" for i in range(len(statuses)))
-                conditions.append(
-                    f"(CASE WHEN s.expires_at IS NULL THEN 'never' WHEN s.expires_at > $1 THEN 'active' ELSE 'churned' END) IN ({placeholders})"
-                )
-                args.extend(statuses)
-            if conditions:
-                query += " WHERE " + " AND ".join(conditions)
-            rows = await conn.fetch(query, *args)
+        try:
+            async with self.pool.acquire() as conn:
+                now = datetime.now(timezone.utc)
+                base = """
+                    WITH data AS (
+                        SELECT u.user_id, u.language,
+                               CASE
+                                   WHEN s.expires_at IS NULL THEN 'never'
+                                   WHEN s.expires_at > $1 THEN 'active'
+                                   ELSE 'churned'
+                               END AS status
+                        FROM users u
+                        LEFT JOIN subscribers s ON u.user_id = s.user_id
+                    )
+                    SELECT user_id, language, status FROM data
+                """
+                args = [now, language, statuses]
+                query = base + " WHERE ($2::text IS NULL OR language = $2)"
+                query += " AND ($3::text[] IS NULL OR status = ANY($3))"
+                rows = await conn.fetch(query, *args)
+        except Exception as e:
+            logger.error("Error getting users: %s", e)
+            raise
 
         return [
             {"user_id": r["user_id"], "language": r["language"], "status": r["status"]}
