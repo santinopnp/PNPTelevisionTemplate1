@@ -2,7 +2,7 @@
 """Manage subscriber data using a PostgreSQL database asynchronously."""
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 try:
@@ -55,7 +55,8 @@ class SubscriberManager:
                 return False
 
             duration_days = plan_info["duration_days"]
-            start_date = datetime.utcnow()
+            # Use timezone-aware UTC datetime to avoid deprecation warning
+            start_date = datetime.now(timezone.utc)
             expiry_date = start_date + timedelta(days=duration_days)
 
             async with self.pool.acquire() as conn:

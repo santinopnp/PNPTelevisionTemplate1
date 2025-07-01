@@ -34,11 +34,11 @@ if not BOLD_IDENTITY_KEY:
 
 PLAN_LINK_IDS = {
     "Trial Trip": "LNK_O7C5LTPYFP",
-    "Monthly Adventure": "LNK_52ZQ7A0I9I",
+    "Cloudy Month": "LNK_52ZQ7A0I9I",
     "Frequent Flyer": "LNK_468D3W49LB",
-    "Half-Year Escape": "LNK_EMVGMPYMGJ",
-    "Full Year Experience": "LNK_253P067SB1",
-    "Lifetime Access": "LNK_PNM53KLD99"
+    "Slam Surfer": "LNK_EMVGMPYMGJ",
+    "Full Year": "LNK_253P067SB1",
+    "PNP Forever": "LNK_PNM53KLD99"
 }
 
 def generate_bold_link(link_id: str, user_id: int, plan_id: str) -> str:
@@ -73,7 +73,7 @@ PLANS = {
         "link_id": "LNK_O7C5LTPYFP"
     },
     "monthly": {
-        "name": "Monthly Adventure", 
+        "name": "Cloudy Month",
         "price": "$24.99",
         "duration_days": 30,
         "link_id": "LNK_52ZQ7A0I9I"
@@ -85,19 +85,19 @@ PLANS = {
         "link_id": "LNK_468D3W49LB"
     },
     "halfyear": {
-        "name": "Half-Year Escape",
+        "name": "Slam Surfer",
         "price": "$79.99",
         "duration_days": 180,
         "link_id": "LNK_EMVGMPYMGJ"
     },
     "yearly": {
-        "name": "Full Year Experience",
+        "name": "Full Year",
         "price": "$99.99",
         "duration_days": 365,
         "link_id": "LNK_253P067SB1"
     },
     "lifetime": {
-        "name": "Lifetime Access",
+        "name": "PNP Forever",
         "price": "$249.99",
         "duration_days": 3650,
         "link_id": "LNK_PNM53KLD99"
