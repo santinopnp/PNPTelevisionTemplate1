@@ -43,6 +43,15 @@ class SubscriberManager:
                 )
                 """
             )
+            await conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id BIGINT PRIMARY KEY,
+                    language TEXT,
+                    last_seen TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+                """
+            )
 
     async def add_subscriber(self, user_id: int, plan_name: str, transaction_id: str = None) -> bool:
         try:
@@ -87,6 +96,7 @@ class SubscriberManager:
                     )
                 except Exception as e:
                     print(f"Error inviting user {user_id} to {channel}: {e}")
+            await self.record_user(user_id)
             return True
         except Exception as e:
             print(f"Error adding subscriber: {e}")
@@ -106,6 +116,53 @@ class SubscriberManager:
                 "SELECT COUNT(*) FROM subscribers WHERE expires_at > NOW()"
             )
         return {"total": total, "active": active}
+
+    async def record_user(self, user_id: int, language: str | None = None) -> None:
+        """Insert or update a user in the tracking table."""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO users (user_id, language, last_seen)
+                VALUES ($1, $2, NOW())
+                ON CONFLICT (user_id) DO UPDATE SET
+                    language=COALESCE($2, users.language),
+                    last_seen=NOW()
+                """,
+                user_id,
+                language,
+            )
+
+    async def get_users(
+        self,
+        *,
+        language: str | None = None,
+        statuses: List[str] | None = None,
+    ) -> List[Dict]:
+        """Return users optionally filtered by language and subscription status."""
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT u.user_id, u.language, s.expires_at
+                FROM users u
+                LEFT JOIN subscribers s ON u.user_id = s.user_id
+                """
+            )
+
+        now = datetime.now(timezone.utc)
+        results = []
+        for row in rows:
+            status = "new"
+            if row["expires_at"] is None:
+                status = "never"
+            else:
+                status = "active" if row["expires_at"] > now else "churned"
+
+            if language and row["language"] != language:
+                continue
+            if statuses and status not in statuses:
+                continue
+            results.append({"user_id": row["user_id"], "language": row["language"], "status": status})
+        return results
 
 
 if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):
