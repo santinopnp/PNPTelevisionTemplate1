@@ -285,6 +285,7 @@ class ConfigService:
         try:
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(config_data, f, indent=2, ensure_ascii=False)
+                f.write('\n')
             return True
         except Exception as e:
             logger.error("Error saving config: %s", e)
