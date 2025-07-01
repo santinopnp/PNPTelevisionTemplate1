@@ -65,22 +65,22 @@ def main():
         if app.job_queue:
             app.job_queue.run_repeating(check_expired_users, interval=24 * 60 * 60)
         else:
-            print("WARNING: JobQueue not available - scheduled tasks disabled")
+            logger.warning("JobQueue not available - scheduled tasks disabled")
 
-        print("✅ Bot starting...")
+        logger.info("✅ Bot starting...")
         app.run_polling(drop_pending_updates=True)
 
     except (ModuleNotFoundError, ImportError) as e:
         if e.name == "asyncpg":
-            print("❌ Error: asyncpg is not installed. Run 'pip install -r requirements.txt'")
+            logger.error("❌ asyncpg is not installed. Run 'pip install -r requirements.txt'")
         else:
-            print(f"❌ Error: {e}")
+            logger.error("❌ Error: %s", e)
         import traceback
-        traceback.print_exc()
+        logger.debug(traceback.format_exc())
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logger.error("❌ Error: %s", e)
         import traceback
-        traceback.print_exc()
+        logger.debug(traceback.format_exc())
 
 
 if __name__ == "__main__":
