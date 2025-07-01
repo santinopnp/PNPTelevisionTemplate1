@@ -6,11 +6,15 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
+import logging
 
 from telegram import Bot
 
 from bot.subscriber_manager import subscriber_manager
 from bot.config import BOT_TOKEN
+
+
+logger = logging.getLogger(__name__)
 
 
 class BroadcastManager:
@@ -62,7 +66,7 @@ class BroadcastManager:
                         parse_mode=parse_mode,
                     )
             except Exception as exc:
-                print(f"Error broadcasting to {user['user_id']}: {exc}")
+                logger.error("Error broadcasting to %s: %s", user["user_id"], exc)
 
     def schedule(
         self,
@@ -102,6 +106,13 @@ class BroadcastManager:
 
         task = asyncio.create_task(_task())
         self.scheduled.append((when, task))
+
+        def _cleanup(fut: asyncio.Task) -> None:
+            self.scheduled = [
+                (w, t) for (w, t) in self.scheduled if t is not fut
+            ]
+
+        task.add_done_callback(_cleanup)
 
 
 broadcast_manager = BroadcastManager()

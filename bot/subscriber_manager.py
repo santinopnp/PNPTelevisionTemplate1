@@ -44,6 +44,9 @@ class SubscriberManager:
                 """
             )
             await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_subscribers_expires_at ON subscribers (expires_at)"
+            )
+            await conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     user_id BIGINT PRIMARY KEY,
@@ -51,6 +54,9 @@ class SubscriberManager:
                     last_seen TIMESTAMP NOT NULL DEFAULT NOW()
                 )
                 """
+            )
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_users_language ON users (language)"
             )
 
     async def add_subscriber(self, user_id: int, plan_name: str, transaction_id: str = None) -> bool:
@@ -140,29 +146,36 @@ class SubscriberManager:
     ) -> List[Dict]:
         """Return users optionally filtered by language and subscription status."""
         async with self.pool.acquire() as conn:
-            rows = await conn.fetch(
-                """
-                SELECT u.user_id, u.language, s.expires_at
+            now = datetime.now(timezone.utc)
+            query = """
+                SELECT u.user_id, u.language,
+                       CASE
+                           WHEN s.expires_at IS NULL THEN 'never'
+                           WHEN s.expires_at > $1 THEN 'active'
+                           ELSE 'churned'
+                       END AS status
                 FROM users u
                 LEFT JOIN subscribers s ON u.user_id = s.user_id
-                """
-            )
+            """
+            args = [now]
+            conditions = []
+            if language:
+                args.append(language)
+                conditions.append(f"u.language = ${len(args)}")
+            if statuses:
+                placeholders = ", ".join(f"${len(args) + i + 1}" for i in range(len(statuses)))
+                conditions.append(
+                    f"(CASE WHEN s.expires_at IS NULL THEN 'never' WHEN s.expires_at > $1 THEN 'active' ELSE 'churned' END) IN ({placeholders})"
+                )
+                args.extend(statuses)
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+            rows = await conn.fetch(query, *args)
 
-        now = datetime.now(timezone.utc)
-        results = []
-        for row in rows:
-            status = "new"
-            if row["expires_at"] is None:
-                status = "never"
-            else:
-                status = "active" if row["expires_at"] > now else "churned"
-
-            if language and row["language"] != language:
-                continue
-            if statuses and status not in statuses:
-                continue
-            results.append({"user_id": row["user_id"], "language": row["language"], "status": status})
-        return results
+        return [
+            {"user_id": r["user_id"], "language": r["language"], "status": r["status"]}
+            for r in rows
+        ]
 
 
 if "pytest" in sys.modules or any("pytest" in arg for arg in sys.argv):

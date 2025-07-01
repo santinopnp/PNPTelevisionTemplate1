@@ -77,9 +77,28 @@ class TestSubscriberManager(unittest.IsolatedAsyncioTestCase):
                 mock_bot.send_message.assert_called_with(chat_id=1, text='Join @channel: link')
 
     async def test_record_and_get_users(self):
+        class DummyConn(FakeConn):
+            async def fetch(self, *args, **kwargs):
+                return [{'user_id': 1, 'language': 'en', 'status': 'never'}]
+
+        class DummyAcquire:
+            def __init__(self, conn):
+                self.conn = conn
+            async def __aenter__(self):
+                return self.conn
+            async def __aexit__(self, exc_type, exc, tb):
+                pass
+
+        self.manager.pool.acquire = lambda: DummyAcquire(DummyConn())
+
         await self.manager.record_user(1, 'en')
-        users = await self.manager.get_users(language='en')
+        users = await self.manager.get_users(language='en', statuses=['never'])
         self.assertIsInstance(users, list)
+        self.assertEqual(len(users), 1)
+        user = users[0]
+        self.assertEqual(user['user_id'], 1)
+        self.assertEqual(user['language'], 'en')
+        self.assertEqual(user['status'], 'never')
 
 if __name__ == '__main__':
     unittest.main()

@@ -27,7 +27,11 @@ async def main() -> None:
     args = parse_args()
     when = None
     if args.schedule:
-        when = datetime.fromisoformat(args.schedule)
+        try:
+            when = datetime.fromisoformat(args.schedule)
+        except ValueError:
+            print(f"Error: --schedule argument '{args.schedule}' is not a valid ISO timestamp.")
+            exit(1)
         if when.tzinfo is None:
             when = when.replace(tzinfo=timezone.utc)
     if when:
