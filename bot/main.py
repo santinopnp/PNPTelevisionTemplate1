@@ -80,7 +80,8 @@ class BotHandlers:
             "• ☁️ Cloudy Month — $24.99 / 30 días\n"
             "• 🔁 Frequent Flyer — $49.99 / 3 meses\n"
             "• 🏄 Slam Surfer — $79.99 / 6 meses\n"
-            "• 🌐 Full Year — $99.99 / 12 meses"
+            "• 🌐 Full Year — $99.99 / 12 meses\n"
+            "• 💎 PNP Forever — $249.99 / lifetime"
         )
         keyboard = [[InlineKeyboardButton("🔙 Back / Atrás", callback_data='back_main')]]
         await query.edit_message_text(text=text, reply_markup=InlineKeyboardMarkup(keyboard))
