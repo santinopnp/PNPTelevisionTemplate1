@@ -86,7 +86,7 @@ class BroadcastManager:
             raise ValueError("Broadcast time must be within 72 hours")
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         day_end = day_start + timedelta(hours=24)
-        count = sum(1 for t, _ in self.scheduled if day_start <= t < day_end)
+        count = sum(bool(day_start <= t < day_end)
         if count >= 12:
             raise ValueError("Maximum 12 scheduled messages per 24h")
 
