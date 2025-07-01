@@ -107,6 +107,13 @@ class BroadcastManager:
         task = asyncio.create_task(_task())
         self.scheduled.append((when, task))
 
+        def _remove_done_task(t):
+            self.scheduled = [
+                (w, tk) for (w, tk) in self.scheduled if tk is not t
+            ]
+
+        task.add_done_callback(_remove_done_task)
+
         def _cleanup(fut: asyncio.Task) -> None:
             self.scheduled = [
                 (w, t) for (w, t) in self.scheduled if t is not fut
