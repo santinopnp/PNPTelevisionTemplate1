@@ -4,6 +4,9 @@ import os
 import json
 from typing import Dict, List, Optional
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ConfigService:
     """Service for managing bot configuration"""
@@ -42,7 +45,7 @@ class ConfigService:
                     file_config = json.load(f)
                     self._update_from_file_config(file_config)
             except Exception as e:
-                print(f"Warning: Could not load config file: {e}")
+                logger.warning("Could not load config file: %s", e)
         
         # Initialize default channel configuration
         self._init_channels_config()
@@ -284,5 +287,5 @@ class ConfigService:
                 json.dump(config_data, f, indent=2, ensure_ascii=False)
             return True
         except Exception as e:
-            print(f"Error saving config: {e}")
+            logger.error("Error saving config: %s", e)
             return False
