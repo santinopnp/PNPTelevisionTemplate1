@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch
 import importlib
 import sys
 import os
+import types
 
 # Ensure the 'bot' package is importable
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -44,6 +45,11 @@ class FakePool:
 async def fake_create_pool(*args, **kwargs):
     return FakePool()
 
+# Provide dummy asyncpg module
+sys.modules.setdefault('asyncpg', types.SimpleNamespace(create_pool=fake_create_pool))
+sys.modules.setdefault('dotenv', types.SimpleNamespace(load_dotenv=lambda: None))
+sys.modules.setdefault('telegram', types.SimpleNamespace(Bot=object))
+
 with patch('asyncpg.create_pool', side_effect=fake_create_pool):
     if 'bot.subscriber_manager' in sys.modules:
         importlib.reload(sys.modules['bot.subscriber_manager'])
@@ -69,6 +75,11 @@ class TestSubscriberManager(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(result)
                 mock_bot.export_chat_invite_link.assert_called_with(chat_id='@channel')
                 mock_bot.send_message.assert_called_with(chat_id=1, text='Join @channel: link')
+
+    async def test_record_and_get_users(self):
+        await self.manager.record_user(1, 'en')
+        users = await self.manager.get_users(language='en')
+        self.assertIsInstance(users, list)
 
 if __name__ == '__main__':
     unittest.main()
