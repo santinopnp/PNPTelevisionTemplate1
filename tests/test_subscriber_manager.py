@@ -99,7 +99,7 @@ class TestSubscriberManager(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(user['user_id'], 1)
         self.assertEqual(user['language'], 'en')
         self.assertEqual(user['status'], 'never')
-
+        
         # Test updating the user's language
         await self.manager.record_user(1, 'fr')
         users = await self.manager.get_users(language='fr', statuses=['never'])
@@ -109,6 +109,5 @@ class TestSubscriberManager(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(user['user_id'], 1)
         self.assertEqual(user['language'], 'fr')
         self.assertEqual(user['status'], 'never')
-
 if __name__ == '__main__':
     unittest.main()

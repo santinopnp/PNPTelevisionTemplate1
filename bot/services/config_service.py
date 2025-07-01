@@ -289,3 +289,4 @@ class ConfigService:
         except Exception as e:
             logger.error("Error saving config: %s", e)
             return False
+      main
