@@ -4,6 +4,7 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
+import logging
 
 try:
     import asyncpg
@@ -13,6 +14,8 @@ except ImportError as exc:
     ) from exc
 from bot.config import CHANNELS, PLANS, BOT_TOKEN, DATABASE_URL
 import sys
+
+logger = logging.getLogger(__name__)
 from telegram import Bot
 
 
@@ -101,11 +104,11 @@ class SubscriberManager:
                         text=f"Join {channel}: {invite_link}",
                     )
                 except Exception as e:
-                    print(f"Error inviting user {user_id} to {channel}: {e}")
+                    logger.error("Error inviting user %s to %s: %s", user_id, channel, e)
             await self.record_user(user_id)
             return True
         except Exception as e:
-            print(f"Error adding subscriber: {e}")
+            logger.error("Error adding subscriber: %s", e)
             return False
 
     async def get_all(self) -> List[Dict]:
