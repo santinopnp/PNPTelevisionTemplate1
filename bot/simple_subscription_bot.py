@@ -25,37 +25,37 @@ CHANNEL_NAME = os.getenv("CHANNEL_NAME", "PNP Television")
 # Plan definitions
 PLANS = {
     "week": {
-        "name": "WEEK PASS",
+        "name": "Trial Trip",
         "price": "$14.99",
         "days": 7,
         "description": "Acceso total a PNP TV por 7 días 🔥"
     },
     "month": {
-        "name": "MONTH PASS",
+        "name": "Cloudy Month",
         "price": "$24.99",
         "days": 30,
         "description": "Un mes entero de placer visual sin límites 💦"
     },
     "3month": {
-        "name": "3 MONTH PASS",
+        "name": "Frequent Flyer",
         "price": "$49.99",
         "days": 90,
         "description": "3 meses de acceso VIP. ¡Ahorra y disfruta más! 💎"
     },
     "halfyear": {
-        "name": "1/2 YEAR PASS",
+        "name": "Slam Surfer",
         "price": "$79.99",
         "days": 180,
         "description": "6 meses de acceso full a la experiencia PNP 🔥🔥"
     },
     "year": {
-        "name": "1 YEAR PASS",
+        "name": "Full Year",
         "price": "$99.99",
         "days": 365,
         "description": "Todo un año con los shows más calientes de PNP 🖤"
     },
     "lifetime": {
-        "name": "LIFETIME PASS",
+        "name": "PNP Forever",
         "price": "$249.99",
         "days": 3650,
         "description": "Acceso ilimitado y de por vida a todo el contenido 💀"
