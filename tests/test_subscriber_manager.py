@@ -92,13 +92,53 @@ class TestSubscriberManager(unittest.IsolatedAsyncioTestCase):
         self.manager.pool.acquire = lambda: DummyAcquire(DummyConn())
 
         await self.manager.record_user(1, 'en')
+        await self.manager.record_user(2, 'fr')
+        await self.manager.record_user(3, 'en')
+        await self.manager.record_user(4, 'en')
+        # Manually set different statuses for testing
+        await self.manager.update_user_status(2, 'active')
+        await self.manager.update_user_status(3, 'never')
+        await self.manager.update_user_status(4, 'active')
+
+        # Test: language='en', statuses=['never']
         users = await self.manager.get_users(language='en', statuses=['never'])
         self.assertIsInstance(users, list)
+        self.assertEqual(len(users), 2)
+        user_ids = {user['user_id'] for user in users}
+        self.assertIn(1, user_ids)
+        self.assertIn(3, user_ids)
+        for user in users:
+            self.assertEqual(user['language'], 'en')
+            self.assertEqual(user['status'], 'never')
+
+        # Test: no filters (should return all users)
+        users = await self.manager.get_users()
+        self.assertEqual(len(users), 4)
+
+        # Test: only language filter
+        users = await self.manager.get_users(language='fr')
         self.assertEqual(len(users), 1)
-        user = users[0]
-        self.assertEqual(user['user_id'], 1)
-        self.assertEqual(user['language'], 'en')
-        self.assertEqual(user['status'], 'never')
+        self.assertEqual(users[0]['user_id'], 2)
+        self.assertEqual(users[0]['language'], 'fr')
+
+        # Test: only statuses filter
+        users = await self.manager.get_users(statuses=['active'])
+        self.assertEqual(len(users), 2)
+        user_ids = {user['user_id'] for user in users}
+        self.assertIn(2, user_ids)
+        self.assertIn(4, user_ids)
+        for user in users:
+            self.assertEqual(user['status'], 'active')
+
+        # Test: filters matching no users
+        users = await self.manager.get_users(language='de', statuses=['never'])
+        self.assertEqual(users, [])
+
+        # Test: multiple statuses
+        users = await self.manager.get_users(statuses=['never', 'active'])
+        self.assertEqual(len(users), 4)
+        user_ids = {user['user_id'] for user in users}
+        self.assertSetEqual(user_ids, {1, 2, 3, 4})
 
 if __name__ == '__main__':
     unittest.main()
